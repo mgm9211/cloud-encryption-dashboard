@@ -1,9 +1,12 @@
 import os
+from cloud_encryption_app.settings import FILES
 
 from django.shortcuts import render
 from cryptography.fernet import Fernet
 from os import mkdir
 from cloud_encryption_app.settings import FILES
+from django.http import HttpResponse
+from django.shortcuts import redirect
 
 key_init = b'E4670MtgbdM1K_KjEBDWg467YB2RIXeXIC8HwnGUWlc='
 
@@ -67,6 +70,7 @@ def index(request):
 
             with open(f'{FILES}/{user}/{filename}', 'wb') as encrypted_file:
                 encrypted_file.write(encrypted_content)
+            return redirect('index')
 
     return render(request, "index.html", context)
 
@@ -81,9 +85,17 @@ def download_file(request, filename, username):
         key = f_key.read()
 
     fernet_key = Fernet(key_init)
-
+    path_file_temp = f'{FILES}/temp/' + filename
     for chunk in chunked_content:
         content += fernet_key.decrypt(chunk)
-    with open(f'{FILES}/{user}/{filename}', 'wb') as decrypted_file:
+    with open(path_file_temp, 'wb') as decrypted_file:
         decrypted_file.write(content)
-    return None
+
+    if os.path.exists(path_file_temp):
+        with open(path_file_temp, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path_file_temp)
+            os.remove(os.path.join(path_file_temp))
+            return response
+    else:
+        return None
