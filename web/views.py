@@ -18,7 +18,9 @@ def chunk_bytes(size, source):
         chunk = source[i:i+size]
         if len(chunk) < size:
             padding = size - len(chunk)
-            chunk += b'0' * padding
+            zero_padding = 0
+            chunk += zero_padding.to_bytes(1,'big') * (padding-1)
+            chunk += padding.to_bytes(1,'big')
 
         yield chunk
 
@@ -51,7 +53,12 @@ def index(request):
             fernet_key = Fernet(key_init)
             encrypted_content = b''
             for c in chunked_content:
-                encrypted_content += fernet_key.encrypt(c)
+                print(len(c))
+                en_c = fernet_key.encrypt(c)
+                print(len(en_c))
+                encrypted_content += en_c
+
+            print(len(encrypted_content))
 
             try:
                 mkdir(f'{FILES}/{user}')
