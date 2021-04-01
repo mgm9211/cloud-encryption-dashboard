@@ -27,7 +27,7 @@
             </form>
         </div>
     </div>
-    <div class="contact1" style="min-height: 10px;">
+    <div class="contact1" style="min-height: 0px;">
     {% if uploaded_files %}
         <div class="upload-results-container">
             <div class="row">
@@ -36,7 +36,7 @@
                 <div class="row item-center-in-row">
                     <ul>
                         {% for file in uploaded_files %}
-                            <li class="color-white"><a href="{% url 'download-file' file username %}">{{ file }}</a></li>
+                            <li><a href="{% url 'download-file' file username %}"><strong class="color-white">{{ file }}</strong></a></li>
                         {% endfor %}
                     </ul>
                 </div>

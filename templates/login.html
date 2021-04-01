@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+    <div class="contact1">
+        <div class="container-contact1">
+            <div class="contact1-pic js-tilt" data-tilt>
+                <img src="{% static 'images/img-01.png' %}" alt="IMG">
+            </div>
+
+            <form class="contact1-form validate-form" enctype="multipart/form-data" method="POST">
+                {% csrf_token %}
+
+                <span class="contact1-form-title">
+                    Iniciar Sesión
+                </span>
+
+                <div class="wrap-input1 validate-input" data-validate="Ancho">
+                    <input class="input1" type="text" name="username" placeholder="Introduce tu username" required>
+                    <span class="shadow-input1"></span>
+                </div>
+
+                <div class="wrap-input1 validate-input" data-validate="Alto">
+                    <input class="input1" type="password" name="password" placeholder="Introduce tu password" required>
+                    <span class="shadow-input1"></span>
+                </div>
+
+                <div class="row item-center-in-row margin-bottom-10px" style="display: block;">
+                    <p><a href="{% url 'create-user' %}"><span class="color-red">Crear Cuenta Nueva</span></a></p>
+                </div>
+
+                <div class="container-contact1-form-btn">
+                    <input type="submit" class="contact1-form-btn" value="Entrar">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

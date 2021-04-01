@@ -1,5 +1,12 @@
 import os
-from cloud_encryption_app.settings import FILES
+
+# Login
+from django.contrib.auth import login as do_login
+from django.contrib.auth import logout as do_logout
+from django.contrib.auth import authenticate
+from django.contrib.auth.decorators import login_required
+# END Login
+
 
 from django.shortcuts import render
 from cryptography.fernet import Fernet
@@ -8,7 +15,7 @@ from cloud_encryption_app.settings import FILES
 from django.http import HttpResponse
 from django.shortcuts import redirect
 
-key_init = b'E4670MtgbdM1K_KjEBDWg467YB2RIXeXIC8HwnGUWlc='
+from .forms import SignUpForm
 
 def chunk_bytes(size, source):
     """
@@ -26,6 +33,32 @@ def chunk_bytes(size, source):
             chunk += padding.to_bytes(1,'big')
 
         yield chunk
+
+
+def login(request, user=None):
+    context = {}
+
+    if request and request.POST:
+        username = request.POST['username']
+        if 'password' in request.POST:
+            password = request.POST['password']
+        elif 'password1' in request.POST:
+            password = request.POST['password1']
+        else:
+            password = ''
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            do_login(request, user)
+            request.session['username'] = username
+            return redirect('index')
+
+    return render(request, "login.html", context)
+
+
+@login_required
+def logout(request):
+    do_logout(request)
+    return redirect('login')
 
 
 # Create your views here.
@@ -53,7 +86,7 @@ def index(request):
                 key = f_key.read()
 
             chunked_content = chunk_bytes(size=256, source=content)
-            fernet_key = Fernet(key_init)
+            fernet_key = Fernet(key)
             encrypted_content = b''
             for c in chunked_content:
                 print(len(c))
@@ -84,7 +117,7 @@ def download_file(request, filename, username):
     with open('./web/FernetKey.key', 'rb') as f_key:
         key = f_key.read()
 
-    fernet_key = Fernet(key_init)
+    fernet_key = Fernet(key)
     path_file_temp = f'{FILES}/temp/' + filename
     for chunk in chunked_content:
         content += fernet_key.decrypt(chunk)
@@ -99,3 +132,18 @@ def download_file(request, filename, username):
             return response
     else:
         return None
+
+
+def create_user(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('index')
+    else:
+        form = SignUpForm()
+    return render(request, '../templates/create-user.html', {'form': form})
