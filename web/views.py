@@ -7,7 +7,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
 # END Login
 
-
 from django.shortcuts import render
 from cryptography.fernet import Fernet
 from os import mkdir
@@ -17,6 +16,7 @@ from django.shortcuts import redirect
 
 from .forms import SignUpForm
 
+
 def chunk_bytes(size, source):
     """
     Return list with chunks of the source data
@@ -25,12 +25,12 @@ def chunk_bytes(size, source):
     :return: list with bytes string separate in chunks
     """
     for i in range(0, len(source), size):
-        chunk = source[i:i+size]
+        chunk = source[i:i + size]
         if len(chunk) < size:
             padding = size - len(chunk)
             zero_padding = 0
-            chunk += zero_padding.to_bytes(1,'big') * (padding-1)
-            chunk += padding.to_bytes(1,'big')
+            chunk += zero_padding.to_bytes(1, 'big') * (padding - 1)
+            chunk += padding.to_bytes(1, 'big')
 
         yield chunk
 
@@ -88,18 +88,13 @@ def index(request):
             chunked_content = chunk_bytes(size=256, source=content)
             fernet_key = Fernet(key)
             encrypted_content = b''
-            r_content = b''
             for c in chunked_content:
-                r_content += c
                 print(len(c))
                 en_c = fernet_key.encrypt(c)
                 print(len(en_c))
                 encrypted_content += en_c
 
             print(len(encrypted_content))
-            end = int.from_bytes(r_content.strip()[-1:],'big')
-            print(r_content)
-            print(r_content.strip()[:-end])
 
             try:
                 mkdir(f'{FILES}/{user}')
@@ -111,6 +106,7 @@ def index(request):
             return redirect('index')
 
     return render(request, "index.html", context)
+
 
 def download_file(request, filename, username):
     user = 'Jose'
@@ -124,8 +120,15 @@ def download_file(request, filename, username):
 
     fernet_key = Fernet(key)
     path_file_temp = f'{FILES}/temp/' + filename
+
     for chunk in chunked_content:
         content += fernet_key.decrypt(chunk)
+
+    end = int.from_bytes(content.strip()[-1:], 'big')
+    print(content)
+    content = content.strip()[:-end]
+    print(content)
+
     with open(path_file_temp, 'wb') as decrypted_file:
         decrypted_file.write(content)
 
