@@ -1,8 +1,11 @@
+import os
+
 from django.shortcuts import render
 from cryptography.fernet import Fernet
 from os import mkdir
 from cloud_encryption_app.settings import FILES
 
+key_init = b'E4670MtgbdM1K_KjEBDWg467YB2RIXeXIC8HwnGUWlc='
 
 def chunk_bytes(size, source):
     """
@@ -26,6 +29,12 @@ def index(request):
 
     filename = ''
     user = 'Jose'
+    context['username'] = user
+    dir = FILES + '/' + user
+
+    context['uploaded_files'] = os.listdir(dir)
+    with open('./web/FernetKey.key', 'rb') as f_key:
+        key = f_key.read()
 
     if request.FILES:
         if 'file' in request.FILES and request.FILES['file']:
@@ -39,7 +48,7 @@ def index(request):
                 key = f_key.read()
 
             chunked_content = chunk_bytes(size=256, source=content)
-            fernet_key = Fernet(key)
+            fernet_key = Fernet(key_init)
             encrypted_content = b''
             for c in chunked_content:
                 encrypted_content += fernet_key.encrypt(c)
@@ -53,3 +62,21 @@ def index(request):
                 encrypted_file.write(encrypted_content)
 
     return render(request, "index.html", context)
+
+def download_file(request, filename, username):
+    user = 'Jose'
+    with open(f'{FILES}/{username}/{filename}', 'rb') as encrypted_file:
+        file = encrypted_file.read()
+
+    chunked_content = chunk_bytes(size=440, source=file)
+    content = b''
+    with open('./web/FernetKey.key', 'rb') as f_key:
+        key = f_key.read()
+
+    fernet_key = Fernet(key_init)
+
+    for chunk in chunked_content:
+        content += fernet_key.decrypt(chunk)
+    with open(f'{FILES}/{user}/{filename}', 'wb') as decrypted_file:
+        decrypted_file.write(content)
+    return None

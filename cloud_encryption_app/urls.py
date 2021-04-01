@@ -22,4 +22,5 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('download-file/<str:filename>/<str:username>', views.download_file, name='download-file'),
 ] + static (settings.STATIC_URL, document_root = settings.STATIC_ROOT)
