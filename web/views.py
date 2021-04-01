@@ -88,13 +88,18 @@ def index(request):
             chunked_content = chunk_bytes(size=256, source=content)
             fernet_key = Fernet(key)
             encrypted_content = b''
+            r_content = b''
             for c in chunked_content:
+                r_content += c
                 print(len(c))
                 en_c = fernet_key.encrypt(c)
                 print(len(en_c))
                 encrypted_content += en_c
 
             print(len(encrypted_content))
+            end = int.from_bytes(r_content.strip()[-1:],'big')
+            print(r_content)
+            print(r_content.strip()[:-end])
 
             try:
                 mkdir(f'{FILES}/{user}')
