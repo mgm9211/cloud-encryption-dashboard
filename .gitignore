@@ -5,9 +5,7 @@
 *.py[cod]
 *$py.class
 
-files/
-cloud_encryption_app/__pycache__/
-web/__pycache__/
+files/*
 
 # C extensions
 *.so
@@ -102,5 +100,5 @@ private_key.key
 public_key.key
 
 web/migrations/*
-web/__pycache__/*
+web/__pycache__/*.pyc
 cloud_encryption_app/__pycache__/*
