@@ -101,8 +101,7 @@ def index(request):
                 )
                 user_pass = User.objects.get(username=username).password
                 print('---------> User pass: ', user_pass)
-                b64_key = kdf.derive(user_pass.encode())
-                key = base64.urlsafe_b64encode(b64_key)
+
                 fernet_key = Fernet(key)
                 chunked_content = chunk_bytes(size=256, source=content)
                 encrypted_content = b''
