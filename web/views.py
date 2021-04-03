@@ -1,3 +1,4 @@
+import base64
 import os
 
 # Login
@@ -95,16 +96,15 @@ def index(request):
                 kdf = PBKDF2HMAC(
                     algorithm=hashes.SHA256(),
                     length=32,
-                    salt=None,
-                    iterations=100000,
-                    backend=None
+                    salt=b'',
+                    iterations=100000
                 )
                 user_pass = User.objects.get(username=username).password
                 print('---------> User pass: ', user_pass)
-                key = kdf.derive(b"my great password")
-
-                chunked_content = chunk_bytes(size=256, source=content)
+                b64_key = kdf.derive(user_pass.encode())
+                key = base64.urlsafe_b64encode(b64_key)
                 fernet_key = Fernet(key)
+                chunked_content = chunk_bytes(size=256, source=content)
                 encrypted_content = b''
                 for c in chunked_content:
                     print(len(c))
@@ -148,7 +148,6 @@ def download_file(request, filename, username):
         chunked_content = chunk_bytes(size=440, source=file)
         content = b''
         key = UploadedFile.objects.get(filename=filename, username=username).encryption_key.encode('UTF-8')
-
         fernet_key = Fernet(key)
         path_file_temp = f'{FILES}/temp/' + filename
 
