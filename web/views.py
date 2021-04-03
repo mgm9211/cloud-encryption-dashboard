@@ -62,6 +62,7 @@ def logout(request):
 
 
 # Create your views here.
+@login_required
 def index(request):
     context = {}
 
@@ -108,6 +109,7 @@ def index(request):
     return render(request, "index.html", context)
 
 
+@login_required
 def download_file(request, filename, username):
     user = 'Jose'
     with open(f'{FILES}/{username}/{filename}', 'rb') as encrypted_file:

@@ -23,4 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
     path('download-file/<str:filename>/<str:username>', views.download_file, name='download-file'),
+    path('login/', views.login, name='login'),
+    path('logout', views.logout, name='logout'),
+    path('create-user', views.create_user, name='create-user'),
 ] + static (settings.STATIC_URL, document_root = settings.STATIC_ROOT)
