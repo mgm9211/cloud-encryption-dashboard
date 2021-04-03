@@ -79,7 +79,7 @@ def index(request):
         uploaded_files = os.listdir(dir)
         with open('./web/FernetKey.key', 'rb') as f_key:
             key = f_key.read()
-    context['uploaded_files'] = uploaded_files
+    context['uploaded_files'] = UploadedFile.objects.filter(username=username, filename__in=uploaded_files)
 
     if request.FILES:
         if 'file' in request.FILES and request.FILES['file']:

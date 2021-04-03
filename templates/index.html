@@ -28,23 +28,29 @@
         </div>
     </div>
     <div class="contact1" style="min-height: 0px;">
-    {% if uploaded_files %}
-        <div class="upload-results-container">
-            <div class="row">
-                <h4 class="color-white">Ficheros Registrados</h4>
-            </div>
-                <div class="row item-center-in-row">
-                    <ul>
-                        {% for file in uploaded_files %}
-                            <li><a href="{% url 'download-file' file username %}"><strong class="color-white">
-                                {{ file.filename }} - {{ file.created_at|date:"d-M-Y H:i"|default:"" }}</strong></a></li>
-                        {% endfor %}
-                    </ul>
+        {% if uploaded_files %}
+            <div class="upload-results-container">
+                <div class="row">
+                    <h4 class="color-white">Ficheros Registrados</h4>
+                </div>
+                    <div class="row item-center-in-row">
+                        <ul>
+                            {% for file in uploaded_files %}
+                                <li><a href="{% url 'download-file' file username %}"><strong class="color-white">
+                                    {{ file.filename }} - {{ file.created_at|date:"d-M-Y H:i"|default:"" }}</strong></a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
-    {% endif %}
+        {% endif %}
     </div>
+    <div class="contact1" style="min-height: 0px;">
+        <div class="row item-center-in-row">
+            <p class="color-white"><a href="{% url 'logout' %}">Cerrar Sesión</a></p>
+        </div>
+    </div>
+
 
 
 {#    </div>#}
