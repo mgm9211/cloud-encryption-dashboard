@@ -15,6 +15,8 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 
 from .forms import SignUpForm
+import datetime
+from web.models import AuthUser, UploadedFile
 
 
 def chunk_bytes(size, source):
@@ -67,9 +69,9 @@ def index(request):
     context = {}
 
     filename = ''
-    user = 'Jose'
-    context['username'] = user
-    dir = FILES + '/' + user
+    username = request.session.get('username')
+    context['username'] = username
+    dir = FILES + '/' + username
 
     context['uploaded_files'] = os.listdir(dir)
     with open('./web/FernetKey.key', 'rb') as f_key:
@@ -77,33 +79,42 @@ def index(request):
 
     if request.FILES:
         if 'file' in request.FILES and request.FILES['file']:
-            filename = request.FILES['file'].name
-            cont = 0
-            content = b''
-            for chunk in request.FILES['file'].chunks():
-                content += chunk
+            if AuthUser.objects.filter(username=username).exists():
+                filename = request.FILES['file'].name
+                content = b''
+                for chunk in request.FILES['file'].chunks():
+                    content += chunk
 
-            with open('./web/FernetKey.key', 'rb') as f_key:
-                key = f_key.read()
+                with open('./web/FernetKey.key', 'rb') as f_key:
+                    key = f_key.read()
 
-            chunked_content = chunk_bytes(size=256, source=content)
-            fernet_key = Fernet(key)
-            encrypted_content = b''
-            for c in chunked_content:
-                print(len(c))
-                en_c = fernet_key.encrypt(c)
-                print(len(en_c))
-                encrypted_content += en_c
+                chunked_content = chunk_bytes(size=256, source=content)
+                fernet_key = Fernet(key)
+                encrypted_content = b''
+                for c in chunked_content:
+                    print(len(c))
+                    en_c = fernet_key.encrypt(c)
+                    print(len(en_c))
+                    encrypted_content += en_c
 
-            print(len(encrypted_content))
+                print(len(encrypted_content))
 
-            try:
-                mkdir(f'{FILES}/{user}')
-            except:
-                print('Folder created')
+                try:
+                    mkdir(f'{FILES}/{username}')
+                except:
+                    print('Folder created')
 
-            with open(f'{FILES}/{user}/{filename}', 'wb') as encrypted_file:
-                encrypted_file.write(encrypted_content)
+                with open(f'{FILES}/{username}/{filename}', 'wb') as encrypted_file:
+                    encrypted_file.write(encrypted_content)
+
+                auth_user = AuthUser.objects.get(username=username)
+                UploadedFile.objects.create(
+                    file_name=filename,
+                    encryption_key='esta ki',
+                    created_at=datetime.datetime.now(),
+                    user=auth_user
+                )
+
             return redirect('index')
 
     return render(request, "index.html", context)

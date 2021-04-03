@@ -17,3 +17,14 @@ class AuthUser(models.Model):
     class Meta:
         managed = False
         db_table = 'auth_user'
+
+
+class UploadedFile(models.Model):
+    file_name = models.CharField(max_length=128)
+    encryption_key = models.CharField(max_length=256)
+    created_at = models.DateTimeField()
+    user = models.ForeignKey(AuthUser, on_delete=models.CASCADE)
+
+    class Meta:
+        managed = False
+        db_table = 'uploaded_file'
