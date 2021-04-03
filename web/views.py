@@ -17,6 +17,7 @@ from django.shortcuts import redirect
 from .forms import SignUpForm
 import datetime
 from web.models import AuthUser, UploadedFile
+from django.contrib.auth.models import User
 
 
 def chunk_bytes(size, source):
@@ -82,14 +83,14 @@ def index(request):
 
     if request.FILES:
         if 'file' in request.FILES and request.FILES['file']:
-            if AuthUser.objects.filter(username=username).exists():
+            if User.objects.filter(username=username).exists():
                 filename = request.FILES['file'].name
                 content = b''
                 for chunk in request.FILES['file'].chunks():
                     content += chunk
 
-                with open('./web/FernetKey.key', 'rb') as f_key:
-                    key = f_key.read()
+                # Generate unique fernet key for uploaded file
+                key = Fernet.generate_key()
 
                 chunked_content = chunk_bytes(size=256, source=content)
                 fernet_key = Fernet(key)
@@ -100,8 +101,6 @@ def index(request):
                     print(len(en_c))
                     encrypted_content += en_c
 
-                print(len(encrypted_content))
-
                 try:
                     mkdir(f'{FILES}/{username}')
                 except:
@@ -109,14 +108,20 @@ def index(request):
 
                 with open(f'{FILES}/{username}/{filename}', 'wb') as encrypted_file:
                     encrypted_file.write(encrypted_content)
-
-                auth_user = AuthUser.objects.get(username=username)
-                UploadedFile.objects.create(
-                    file_name=filename,
-                    encryption_key='esta ki',
-                    created_at=datetime.datetime.now(),
-                    user=auth_user
-                )
+                if UploadedFile.objects.filter(filename=filename, username=username).exists():
+                    UploadedFile.objects.update(
+                        filename=filename,
+                        encryption_key=key.decode('UTF-8'),
+                        created_at=datetime.datetime.now(),
+                        username=username
+                    )
+                else:
+                    UploadedFile.objects.create(
+                        filename=filename,
+                        encryption_key=key.decode('UTF-8'),
+                        created_at=datetime.datetime.now(),
+                        username=username
+                    )
 
             return redirect('index')
 
@@ -125,37 +130,34 @@ def index(request):
 
 @login_required
 def download_file(request, filename, username):
-    user = 'Jose'
-    with open(f'{FILES}/{username}/{filename}', 'rb') as encrypted_file:
-        file = encrypted_file.read()
+    if UploadedFile.objects.filter(filename=filename, username=username).exists():
+        with open(f'{FILES}/{username}/{filename}', 'rb') as encrypted_file:
+            file = encrypted_file.read()
 
-    chunked_content = chunk_bytes(size=440, source=file)
-    content = b''
-    with open('./web/FernetKey.key', 'rb') as f_key:
-        key = f_key.read()
+        chunked_content = chunk_bytes(size=440, source=file)
+        content = b''
+        key = UploadedFile.objects.get(filename=filename, username=username).encryption_key.encode('UTF-8')
 
-    fernet_key = Fernet(key)
-    path_file_temp = f'{FILES}/temp/' + filename
+        fernet_key = Fernet(key)
+        path_file_temp = f'{FILES}/temp/' + filename
 
-    for chunk in chunked_content:
-        content += fernet_key.decrypt(chunk)
+        for chunk in chunked_content:
+            content += fernet_key.decrypt(chunk)
 
-    end = int.from_bytes(content.strip()[-1:], 'big')
-    print(content)
-    content = content.strip()[:-end]
-    print(content)
+        end = int.from_bytes(content.strip()[-1:], 'big')
+        content = content.strip()[:-end]
 
-    with open(path_file_temp, 'wb') as decrypted_file:
-        decrypted_file.write(content)
+        with open(path_file_temp, 'wb') as decrypted_file:
+            decrypted_file.write(content)
 
-    if os.path.exists(path_file_temp):
-        with open(path_file_temp, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path_file_temp)
-            os.remove(os.path.join(path_file_temp))
-            return response
-    else:
-        return None
+        if os.path.exists(path_file_temp):
+            with open(path_file_temp, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path_file_temp)
+                os.remove(os.path.join(path_file_temp))
+                return response
+        else:
+            return None
 
 
 def create_user(request):

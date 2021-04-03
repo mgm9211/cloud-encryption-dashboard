@@ -19,4 +19,4 @@ class UploadedFile(models.Model):
     filename = models.CharField(max_length=128)
     encryption_key = models.CharField(max_length=256)
     created_at = models.DateTimeField()
-    user = models.ForeignKey(AuthUser, on_delete=models.CASCADE)
+    username = models.CharField(max_length=128)
