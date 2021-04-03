@@ -73,9 +73,12 @@ def index(request):
     context['username'] = username
     dir = FILES + '/' + username
 
-    context['uploaded_files'] = os.listdir(dir)
-    with open('./web/FernetKey.key', 'rb') as f_key:
-        key = f_key.read()
+    uploaded_files = None
+    if os.path.exists(dir):
+        uploaded_files = os.listdir(dir)
+        with open('./web/FernetKey.key', 'rb') as f_key:
+            key = f_key.read()
+    context['uploaded_files'] = uploaded_files
 
     if request.FILES:
         if 'file' in request.FILES and request.FILES['file']:
