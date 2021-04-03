@@ -102,4 +102,5 @@ private_key.key
 public_key.key
 
 web/migrations/*
-
+cloud_encryption_app/__pycache__/*
+web/__pycache__/*
