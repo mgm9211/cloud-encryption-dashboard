@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 
 from django.shortcuts import render
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from os import mkdir
 from cloud_encryption_app.settings import FILES
 from django.http import HttpResponse
@@ -90,7 +92,16 @@ def index(request):
                     content += chunk
 
                 # Generate unique fernet key for uploaded file
-                key = Fernet.generate_key()
+                kdf = PBKDF2HMAC(
+                    algorithm=hashes.SHA256(),
+                    length=32,
+                    salt=None,
+                    iterations=100000,
+                    backend=None
+                )
+                user_pass = User.objects.get(username=username).password
+                print('---------> User pass: ', user_pass)
+                key = kdf.derive(b"my great password")
 
                 chunked_content = chunk_bytes(size=256, source=content)
                 fernet_key = Fernet(key)
