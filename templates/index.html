@@ -36,7 +36,7 @@
                     <div class="row item-center-in-row">
                         <ul>
                             {% for file in uploaded_files %}
-                                <li><a href="{% url 'download-file' file username %}"><strong class="color-white">
+                                <li><a href="{% url 'download-file' file.filename username %}"><strong class="color-white">
                                     {{ file.filename }} - {{ file.created_at|date:"d-M-Y H:i"|default:"" }}</strong></a></li>
                             {% endfor %}
                         </ul>
