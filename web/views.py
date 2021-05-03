@@ -1,3 +1,4 @@
+import base64
 import os
 
 # Login
@@ -84,7 +85,6 @@ def index(request):
     if uploaded_files:
         context['uploaded_files'] = UploadedFile.objects.filter(username=username, filename__in=uploaded_files)
 
-
     if request.FILES:
         if 'file' in request.FILES and request.FILES['file']:
             if User.objects.filter(username=username).exists():
@@ -97,14 +97,11 @@ def index(request):
                 kdf = PBKDF2HMAC(
                     algorithm=hashes.SHA256(),
                     length=32,
-                    salt=None,
-                    iterations=100000,
-                    backend=None
+                    salt=b'',
+                    iterations=100000
                 )
                 user_pass = User.objects.get(username=username).password
-                print('---------> User pass: ', user_pass)
-                key = kdf.derive(b"my great password")
-
+                key = base64.urlsafe_b64encode(kdf.derive(user_pass.encode()))
                 chunked_content = chunk_bytes(size=256, source=content)
                 fernet_key = Fernet(key)
                 encrypted_content = b''
