@@ -26,4 +26,6 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout', views.logout, name='logout'),
     path('create-user', views.create_user, name='create-user'),
-] + static (settings.STATIC_URL, document_root = settings.STATIC_ROOT)
+    path('upload-file', views.APIUpload.as_view(), name='upload-file'),
+    path('api-login', views.APILogin.as_view(), name='api-login')
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
