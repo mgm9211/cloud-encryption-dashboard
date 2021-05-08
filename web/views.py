@@ -134,7 +134,7 @@ def encrypt_file(request, username):
         WDEK = json_res['DEK']
 
         if UploadedFile.objects.filter(filename=filename, username=username).exists():
-            UploadedFile.objects.update(
+            UploadedFile.objects.filter(filename=filename, username=username).update(
                 filename=filename,
                 encryption_key=WDEK,
                 created_at=datetime.datetime.now(),
@@ -157,11 +157,11 @@ def download_file(request, filename, username):
 
         chunked_content = chunk_bytes(size=440, source=file)
         content = b''
-        key = UploadedFile.objects.get(filename=filename, username=username).encryption_key.encode('UTF-8')
-
-        fernet_key = Fernet(key)
+        WDEK = UploadedFile.objects.get(filename=filename, username=username).encryption_key.encode('UTF-8')
+        kms_response = requests.get(url=f'http://127.0.0.1:8081/get-key/{WDEK.decode()}').content.decode()
+        json_res = json.loads(kms_response)
+        fernet_key = Fernet(json_res['DEK'])
         path_file_temp = f'{FILES}/temp/' + filename
-
         for chunk in chunked_content:
             content += fernet_key.decrypt(chunk)
 
@@ -175,8 +175,9 @@ def download_file(request, filename, username):
             with open(path_file_temp, 'rb') as fh:
                 response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
                 response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path_file_temp)
-                os.remove(os.path.join(path_file_temp))
-                return response
+
+            os.remove(os.path.join(path_file_temp))
+            return response
         else:
             return None
 
@@ -227,3 +228,26 @@ class APILogin(views.APIView):
             message = 'Successfully Login'
 
         return response.Response(data={'message': message}, status=res_status)
+
+
+class APIGetFile(views.APIView):
+    @staticmethod
+    def get(request, filename, username):
+        if UploadedFile.objects.filter(filename=filename, username=username).exists():
+            with open(f'{FILES}/{username}/{filename}', 'rb') as encrypted_file:
+                file = encrypted_file.read()
+
+            WDEK = UploadedFile.objects.get(filename=filename, username=username).encryption_key.encode('UTF-8')
+            return response.Response(data={'File': file, 'WDEK': WDEK}, status=status.HTTP_200_OK)
+
+        return response.Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class APIGetFiles(views.APIView):
+    @staticmethod
+    def get(request, username):
+        if UploadedFile.objects.filter(username=username).exists():
+            files_names = UploadedFile.objects.filter(username=username).values('filename')
+            return response.Response(data=files_names, status=status.HTTP_200_OK)
+
+        return response.Response(status=status.HTTP_404_NOT_FOUND)
