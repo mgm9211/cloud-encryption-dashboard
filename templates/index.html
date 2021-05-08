@@ -38,7 +38,7 @@
                             {% for file in uploaded_files %}
                                 <li><a href="{% url 'download-file' file.filename username %}"><strong class="color-white">
                                     {{ file.filename }} - {{ file.created_at|date:"d-M-Y H:i"|default:"" }}</strong></a>
-                                    <i class="fas fa-trash-alt color-red"></i>
+                                    <a href="{% url 'delete-file' file.filename username %}"><i class="fas fa-trash-alt color-red"></i></a>
                                 </li>
                             {% endfor %}
                         </ul>
