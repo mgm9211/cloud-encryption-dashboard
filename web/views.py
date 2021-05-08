@@ -129,17 +129,13 @@ def encrypt_file(request, username):
         with open(f'{FILES}/{username}/{filename}', 'wb') as encrypted_file:
             encrypted_file.write(encrypted_content)
 
-        response = requests.get('http://127.0.0.1:8081/wrapped-key/' + key.decode()).content.decode()
+        response = requests.get('http://127.0.0.1:8082/wrapped-key/' + key.decode()).content.decode()
         json_res = json.loads(response)
         WDEK = json_res['DEK']
 
         if UploadedFile.objects.filter(filename=filename, username=username).exists():
-            UploadedFile.objects.update(
-                filename=filename,
-                encryption_key=WDEK,
-                created_at=datetime.datetime.now(),
-                username=username
-            )
+            UploadedFile.objects.filter(filename=filename, username=username).update(encryption_key=WDEK,
+                                                created_at=datetime.datetime.now())
         else:
             UploadedFile.objects.create(
                 filename=filename,
