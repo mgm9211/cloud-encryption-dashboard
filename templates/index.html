@@ -37,7 +37,9 @@
                         <ul>
                             {% for file in uploaded_files %}
                                 <li><a href="{% url 'download-file' file.filename username %}"><strong class="color-white">
-                                    {{ file.filename }} - {{ file.created_at|date:"d-M-Y H:i"|default:"" }}</strong></a></li>
+                                    {{ file.filename }} - {{ file.created_at|date:"d-M-Y H:i"|default:"" }}</strong></a>
+                                    <i class="fas fa-trash-alt color-red"></i>
+                                </li>
                             {% endfor %}
                         </ul>
                     </div>
