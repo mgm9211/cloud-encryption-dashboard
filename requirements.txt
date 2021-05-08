@@ -9,6 +9,7 @@ idna==2.10
 pycparser==2.20
 pytz==2021.1
 requests==2.25.1
+secure-delete==0.0.2
 six==1.15.0
 sqlparse==0.4.1
 urllib3==1.26.4
