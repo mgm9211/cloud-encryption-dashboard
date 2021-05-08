@@ -30,5 +30,6 @@ urlpatterns = [
     path('upload-file', views.APIUpload.as_view(), name='upload-file'),
     path('api-login', views.APILogin.as_view(), name='api-login'),
     path('api-get-file/<str:filename>/<str:username>', views.APIGetFile.as_view(), name='api-get-file'),
-    path('api-get-files/<str:username>', views.APIGetFiles.as_view(), name='api-get-files')
+    path('api-get-files/<str:username>', views.APIGetFiles.as_view(), name='api-get-files'),
+    path('api-delete-file/<str:username>/<str:filename>', views.APIDeleteFile.as_view(), name='api-delete-file')
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

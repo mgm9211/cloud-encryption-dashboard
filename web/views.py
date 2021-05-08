@@ -24,6 +24,7 @@ import datetime
 from web.models import AuthUser, UploadedFile
 from django.contrib.auth.models import User
 from rest_framework import views, response, status
+from secure_delete import secure_delete
 
 
 def chunk_bytes(size, source):
@@ -42,6 +43,16 @@ def chunk_bytes(size, source):
             chunk += padding.to_bytes(1, 'big')
 
         yield chunk
+
+
+@login_required()
+def delete_file(request, filename, username):
+    if UploadedFile.objects.filter(filename=filename, username=username).exists():
+        secure_delete.secure_random_seed_init()
+        secure_delete.secure_delete(f'{FILES}/{username}/{filename}')
+        UploadedFile.objects.filter(filename=filename, username=username).delete()
+
+    return redirect(index)
 
 
 def login(request, user=None):
@@ -249,5 +260,17 @@ class APIGetFiles(views.APIView):
         if UploadedFile.objects.filter(username=username).exists():
             files_names = UploadedFile.objects.filter(username=username).values('filename')
             return response.Response(data=files_names, status=status.HTTP_200_OK)
+
+        return response.Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class APIDeleteFile(views.APIView):
+    @staticmethod
+    def get(request, username, filename):
+        if UploadedFile.objects.filter(filename=filename, username=username).exists():
+            secure_delete.secure_random_seed_init()
+            secure_delete.secure_delete(f'{FILES}/{username}/{filename}')
+            UploadedFile.objects.filter(filename=filename, username=username).delete()
+            return response.Response(status=status.HTTP_200_OK)
 
         return response.Response(status=status.HTTP_404_NOT_FOUND)
