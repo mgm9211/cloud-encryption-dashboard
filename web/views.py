@@ -210,13 +210,14 @@ def create_user(request):
 
 class APIUpload(views.APIView):
     @staticmethod
-    def post(request):
+    def post(request, username):
         """
         Upload File to Cloud Storage System
         :param request: HTTP request
+        :param username: user that upload the file
         :return: JSON response
         """
-        encrypt_file(request, 'Jose1001')
+        encrypt_file(request, username)
         return response.Response(data={'message': 'File upload successfully'}, status=status.HTTP_200_OK)
 
 
