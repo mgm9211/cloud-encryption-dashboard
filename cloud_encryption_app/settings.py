@@ -21,6 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 FILES = os.path.join(BASE_DIR, 'files')
 if not os.path.exists(FILES):
     os.mkdir(FILES)
+
+TEMP = os.path.join(BASE_DIR, 'files/temp')
+if not os.path.exists(TEMP):
+    os.mkdir(TEMP)
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'k5py707)!1@tlac=a3(un%1i*7%&!boo+)#y&t(!ul3pczc$w9'
 
